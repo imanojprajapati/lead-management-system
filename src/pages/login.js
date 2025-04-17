@@ -1,52 +1,22 @@
 import React, { useState } from 'react';
-import { 
-  Card, 
-  Form, 
-  Input, 
-  Button, 
-  Typography, 
-  message,
-  Space,
-  Divider
-} from 'antd';
-import { 
-  UserOutlined, 
-  LockOutlined,
-  LoginOutlined
-} from '@ant-design/icons';
 import { useRouter } from 'next/router';
-import { useAuth } from '@/contexts/AuthContext';
+import { Form, Input, Button, Card, Typography, Space } from 'antd';
+import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import { useAuth } from '../contexts/AuthContext';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
-const Login = () => {
-  const [loading, setLoading] = useState(false);
+const LoginPage = () => {
   const router = useRouter();
   const { login } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   const onFinish = async (values) => {
     setLoading(true);
-    try {
-      // For demo purposes, hardcoded admin credentials
-      if (values.username === 'admin' && values.password === '1234') {
-        const success = await login({
-          id: '1',
-          username: 'admin',
-          role: 'admin',
-          name: 'Admin User'
-        });
-        
-        if (success) {
-          message.success('Login successful');
-          router.push('/dashboard');
-        }
-      } else {
-        message.error('Invalid credentials');
-      }
-    } catch (error) {
-      message.error('Login failed');
-    } finally {
-      setLoading(false);
+    const result = await login(values.username, values.password);
+    setLoading(false);
+    if (result.success) {
+      router.push(result.redirectTo);
     }
   };
 
@@ -58,11 +28,11 @@ const Login = () => {
       alignItems: 'center',
       background: '#f0f2f5'
     }}>
-      <Card style={{ width: 400, boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>
+      <Card style={{ width: 400, padding: '24px' }}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <div style={{ textAlign: 'center' }}>
-            <Title level={2}>Welcome Back</Title>
-            <Text type="secondary">Please login to your account</Text>
+            <Title level={2}>Lead Management System</Title>
+            <Title level={4}>Login</Title>
           </div>
 
           <Form
@@ -76,7 +46,7 @@ const Login = () => {
             >
               <Input 
                 prefix={<UserOutlined />} 
-                placeholder="Username"
+                placeholder="Username" 
                 size="large"
               />
             </Form.Item>
@@ -97,7 +67,6 @@ const Login = () => {
                 type="primary" 
                 htmlType="submit" 
                 loading={loading}
-                icon={<LoginOutlined />}
                 block
                 size="large"
               >
@@ -106,18 +75,17 @@ const Login = () => {
             </Form.Item>
           </Form>
 
-          <Divider>
-            <Text type="secondary">Demo Credentials</Text>
-          </Divider>
-          
-          <Space direction="vertical" style={{ width: '100%' }}>
-            <Text>Username: admin</Text>
-            <Text>Password: 1234</Text>
-          </Space>
+          <div style={{ textAlign: 'center' }}>
+            <Typography.Text type="secondary">
+              Demo Credentials:<br />
+              Admin: username: admin, password: admin<br />
+              Staff: username: emp123, password: emp123
+            </Typography.Text>
+          </div>
         </Space>
       </Card>
     </div>
   );
 };
 
-export default Login; 
+export default LoginPage; 
