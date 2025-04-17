@@ -146,16 +146,22 @@ const ViewLeadPage = () => {
 
   const handleSaveFollowUp = async (followUpData) => {
     try {
-      // Replace with actual API call
+      // Create new follow-up with proper data
       const newFollowUp = {
+        id: Date.now(),
         ...followUpData,
-        id: followUps.length + 1,
-        assignedToName: SAMPLE_STAFF_MEMBERS.find(s => s.id === followUpData.assignedTo)?.name
+        leadId: lead.id,
+        leadName: lead.fullName || lead.name,
+        status: 'pending',
+        dateTime: dayjs(followUpData.dateTime).format('YYYY-MM-DD HH:mm:ss')
       };
       
-      setFollowUps([newFollowUp, ...followUps]);
+      // Update follow-ups state
+      setFollowUps(prevFollowUps => [newFollowUp, ...prevFollowUps]);
+      message.success('Follow-up added successfully');
     } catch (error) {
       console.error('Error saving follow-up:', error);
+      message.error('Failed to add follow-up');
     }
   };
 
@@ -395,10 +401,8 @@ const ViewLeadPage = () => {
         <FollowUpModal
           visible={isFollowUpModalVisible}
           onCancel={() => setIsFollowUpModalVisible(false)}
-          onSave={handleSaveFollowUp}
-          leadId={id}
-          leadName={lead?.name}
-          staffMembers={SAMPLE_STAFF_MEMBERS}
+          onSubmit={handleSaveFollowUp}
+          lead={lead}
         />
 
         <Modal

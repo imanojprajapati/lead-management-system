@@ -27,11 +27,22 @@ import {
   CalendarOutlined,
   MailOutlined,
   PhoneOutlined,
-  UserOutlined
+  UserOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  WhatsAppOutlined,
+  TeamOutlined,
+  HistoryOutlined,
+  HomeOutlined
 } from '@ant-design/icons';
 import { useRouter } from 'next/router';
 import { useLeads } from '../contexts/LeadsContext';
+import { useAuth } from '@/contexts/AuthContext';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import FollowUpModal from './FollowUpModal';
+import FollowUpTimeline from './FollowUpTimeline';
 import dayjs from 'dayjs';
+import Link from 'next/link';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -72,11 +83,14 @@ const FOLLOW_UP_METHODS = {
 const LeadsList = () => {
   const router = useRouter();
   const { leads, loading, deleteLead, updateNotes } = useLeads();
+  const { user } = useAuth();
   const [searchText, setSearchText] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedLead, setSelectedLead] = useState(null);
   const [isNotesModalVisible, setIsNotesModalVisible] = useState(false);
   const [notesForm] = Form.useForm();
+  const [followUpModalVisible, setFollowUpModalVisible] = useState(false);
+  const [followUps, setFollowUps] = useState([]);
 
   // Memoize filtered leads to prevent unnecessary recalculations
   const filteredLeads = useMemo(() => {
@@ -197,19 +211,26 @@ const LeadsList = () => {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
-        <Space size="middle">
+        <Space>
           <Tooltip title="View Details">
             <Button 
-              type="text" 
+              type="link" 
               icon={<EyeOutlined />} 
               onClick={() => router.push(`/dashboard/leads/view/${record.id}`)}
             />
           </Tooltip>
           <Tooltip title="Edit Lead">
             <Button 
-              type="text" 
+              type="link" 
               icon={<EditOutlined />} 
               onClick={() => router.push(`/dashboard/leads/edit/${record.id}`)}
+            />
+          </Tooltip>
+          <Tooltip title="Follow-up">
+            <Button 
+              type="link" 
+              icon={<HistoryOutlined style={{ color: '#1890ff' }} />} 
+              onClick={() => handleFollowUpClick(record)}
             />
           </Tooltip>
           <Tooltip title="Delete Lead">
@@ -219,7 +240,7 @@ const LeadsList = () => {
               okText="Yes"
               cancelText="No"
             >
-              <Button type="text" danger icon={<DeleteOutlined />} />
+              <Button type="link" danger icon={<DeleteOutlined />} />
             </Popconfirm>
           </Tooltip>
         </Space>
@@ -258,6 +279,25 @@ const LeadsList = () => {
     setSearchText('');
     setStatusFilter('all');
   }, []);
+
+  const handleFollowUpClick = (lead) => {
+    setSelectedLead(lead);
+    setFollowUpModalVisible(true);
+  };
+
+  const handleFollowUpSubmit = (followUpData) => {
+    const newFollowUp = {
+      id: Date.now(),
+      ...followUpData,
+      staffName: user.name,
+      status: 'pending',
+      dateTime: dayjs(followUpData.dateTime).format('YYYY-MM-DD HH:mm:ss')
+    };
+
+    setFollowUps(prev => [newFollowUp, ...prev]);
+    setFollowUpModalVisible(false);
+    message.success('Follow-up added successfully');
+  };
 
   // Memoize the search and filter section to prevent unnecessary re-renders
   const searchAndFilterSection = useMemo(() => (
@@ -305,47 +345,69 @@ const LeadsList = () => {
   ), [searchText, statusFilter, handleSearch, handleStatusFilter, handleResetFilters, router]);
 
   return (
-    <Card>
-      <Title level={2}>Leads Management</Title>
-      
-      {searchAndFilterSection}
+    <ProtectedRoute allowedRoles={['admin', 'sales']}>
+      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <Card>
+          <Title level={4} style={{ margin: 0 }}>Leads Management</Title>
+        </Card>
 
-      <Table
-        columns={columns}
-        dataSource={filteredLeads}
-        rowKey="id"
-        loading={loading}
-        pagination={{
-          total: filteredLeads.length,
-          pageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total) => `Total ${total} leads`
-        }}
-      />
+        {searchAndFilterSection}
 
-      <Modal
-        title="Update Notes"
-        open={isNotesModalVisible}
-        onOk={() => notesForm.submit()}
-        onCancel={() => setIsNotesModalVisible(false)}
-        destroyOnClose
-      >
-        <Form
-          form={notesForm}
-          layout="vertical"
-          onFinish={handleUpdateNotes}
+        <Table
+          columns={columns}
+          dataSource={filteredLeads}
+          rowKey="id"
+          loading={loading}
+          pagination={{
+            total: filteredLeads.length,
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total) => `Total ${total} leads`
+          }}
+        />
+
+        <FollowUpModal
+          visible={followUpModalVisible}
+          onCancel={() => setFollowUpModalVisible(false)}
+          onSubmit={handleFollowUpSubmit}
+          lead={selectedLead}
+        />
+
+        {selectedLead && (
+          <FollowUpTimeline
+            followUps={followUps.filter(f => f.leadId === selectedLead.id)}
+            onAddFollowUp={() => setFollowUpModalVisible(true)}
+            onEdit={(followUp) => {
+              // Handle edit follow-up
+              console.log('Edit follow-up:', followUp);
+            }}
+          />
+        )}
+
+        <Modal
+          title="Update Notes"
+          open={isNotesModalVisible}
+          onOk={() => notesForm.submit()}
+          onCancel={() => setIsNotesModalVisible(false)}
+          destroyOnClose
         >
-          <Form.Item
-            name="notes"
-            label="Notes"
-            rules={[{ required: true, message: 'Please enter notes' }]}
+          <Form
+            form={notesForm}
+            layout="vertical"
+            onFinish={handleUpdateNotes}
           >
-            <Input.TextArea rows={4} placeholder="Enter notes about the lead" />
-          </Form.Item>
-        </Form>
-      </Modal>
-    </Card>
+            <Form.Item
+              name="notes"
+              label="Notes"
+              rules={[{ required: true, message: 'Please enter notes' }]}
+            >
+              <Input.TextArea rows={4} placeholder="Enter notes about the lead" />
+            </Form.Item>
+          </Form>
+        </Modal>
+      </Space>
+    </ProtectedRoute>
   );
 };
 
