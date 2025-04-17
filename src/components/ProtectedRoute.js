@@ -1,6 +1,6 @@
 import React from 'react';
 import { useRouter } from 'next/router';
-import { Result, Button } from 'antd';
+import { Result, Button, Spin } from 'antd';
 import { useAuth } from '@/contexts/AuthContext';
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -8,7 +8,16 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return null; // or a loading spinner
+    return (
+      <div style={{ 
+        height: '100vh', 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center' 
+      }}>
+        <Spin size="large" />
+      </div>
+    );
   }
 
   if (!user) {

@@ -1,20 +1,29 @@
 import "@/styles/globals.css";
 import { useRouter } from 'next/router';
-import { Layout, Menu } from 'antd';
+import { Layout, Menu, Button, Space, Avatar } from 'antd';
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   DashboardOutlined,
   FormOutlined,
   TeamOutlined,
+  UserOutlined,
+  LogoutOutlined,
+  LoginOutlined,
+  SettingOutlined
 } from '@ant-design/icons';
 import Link from 'next/link';
 import { useState } from 'react';
 import { LeadsProvider } from '../contexts/LeadsContext';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 
 const { Header, Sider, Content } = Layout;
 
-function DashboardLayout({ children, collapsed, setCollapsed, currentRoute }) {
+// Separate the layout content into its own component
+const LayoutContent = ({ children, collapsed, setCollapsed, currentRoute }) => {
+  const router = useRouter();
+  const { user, logout } = useAuth();
+
   const menuItems = [
     {
       key: 'dashboard',
@@ -31,7 +40,17 @@ function DashboardLayout({ children, collapsed, setCollapsed, currentRoute }) {
       icon: <TeamOutlined />,
       label: <Link href="/dashboard/leads">Leads</Link>,
     },
+    ...(user?.role === 'admin' ? [{
+      key: 'admin',
+      icon: <SettingOutlined />,
+      label: <Link href="/dashboard/admin/users">User Management</Link>,
+    }] : [])
   ];
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -75,21 +94,50 @@ function DashboardLayout({ children, collapsed, setCollapsed, currentRoute }) {
         />
       </Sider>
       <Layout>
-        <Header style={{ padding: 0, background: '#fff' }}>
-          <button
+        <Header style={{ 
+          padding: '0 24px', 
+          background: '#fff',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <Button
             type="text"
             onClick={() => setCollapsed(!collapsed)}
             style={{
               fontSize: '16px',
               width: 64,
               height: 64,
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer'
             }}
           >
             {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-          </button>
+          </Button>
+
+          <Space>
+            {user ? (
+              <>
+                <Space>
+                  <Avatar icon={<UserOutlined />} />
+                  <span>{user.name}</span>
+                </Space>
+                <Button 
+                  type="text" 
+                  icon={<LogoutOutlined />}
+                  onClick={handleLogout}
+                >
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <Button 
+                type="primary" 
+                icon={<LoginOutlined />}
+                onClick={() => router.push('/login')}
+              >
+                Login
+              </Button>
+            )}
+          </Space>
         </Header>
         <Content
           style={{
@@ -105,8 +153,9 @@ function DashboardLayout({ children, collapsed, setCollapsed, currentRoute }) {
       </Layout>
     </Layout>
   );
-}
+};
 
+// Main App component
 export default function App({ Component, pageProps }) {
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
@@ -117,21 +166,21 @@ export default function App({ Component, pageProps }) {
   // Get the current route segment for menu highlighting
   const currentRoute = router.pathname.split('/')[2] || 'dashboard';
 
-  const content = isDashboardRoute ? (
-    <DashboardLayout 
-      collapsed={collapsed}
-      setCollapsed={setCollapsed}
-      currentRoute={currentRoute}
-    >
+  return (
+    <AuthProvider>
       <LeadsProvider>
-        <Component {...pageProps} />
+        {isDashboardRoute ? (
+          <LayoutContent 
+            collapsed={collapsed}
+            setCollapsed={setCollapsed}
+            currentRoute={currentRoute}
+          >
+            <Component {...pageProps} />
+          </LayoutContent>
+        ) : (
+          <Component {...pageProps} />
+        )}
       </LeadsProvider>
-    </DashboardLayout>
-  ) : (
-    <LeadsProvider>
-      <Component {...pageProps} />
-    </LeadsProvider>
+    </AuthProvider>
   );
-
-  return content;
 }

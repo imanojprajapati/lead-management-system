@@ -11,24 +11,20 @@ export const AuthProvider = ({ children }) => {
     // Check for stored user data on mount
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        localStorage.removeItem('user');
+      }
     }
     setLoading(false);
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (userData) => {
     try {
-      // Replace with actual API call
-      const response = {
-        id: '1',
-        name: 'John Admin',
-        email: 'john@example.com',
-        role: 'admin'
-      };
-      
-      setUser(response);
-      localStorage.setItem('user', JSON.stringify(response));
-      message.success('Login successful');
+      // In a real app, you would validate credentials with an API
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
       return true;
     } catch (error) {
       message.error('Login failed');
@@ -47,8 +43,16 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('user', JSON.stringify(userData));
   };
 
+  const value = {
+    user,
+    loading,
+    login,
+    logout,
+    updateUser
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, updateUser }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
