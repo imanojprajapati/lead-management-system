@@ -10,7 +10,8 @@ import {
   UserOutlined,
   LogoutOutlined,
   LoginOutlined,
-  SettingOutlined
+  SettingOutlined,
+  AppstoreOutlined
 } from '@ant-design/icons';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -42,8 +43,8 @@ const LayoutContent = ({ children, collapsed, setCollapsed, currentRoute }) => {
     },
     ...(user?.role === 'admin' ? [{
       key: 'admin',
-      icon: <SettingOutlined />,
-      label: <Link href="/dashboard/admin/users">User Management</Link>,
+      icon: <AppstoreOutlined />,
+      label: <Link href="/dashboard/admin/users">Admin Panel</Link>,
     }] : [])
   ];
 

@@ -1,314 +1,269 @@
-import React, { memo, useMemo, useCallback, useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Table, 
   Button, 
-  Modal, 
-  Form, 
-  Input, 
-  Select, 
-  Popconfirm, 
   Space, 
-  message, 
-  Typography, 
-  Tag,
-  Card
+  Tag, 
+  Card, 
+  Typography,
+  message,
+  Popconfirm,
+  Tooltip
 } from 'antd';
 import { 
-  PlusOutlined, 
+  UserAddOutlined, 
   EditOutlined, 
-  DeleteOutlined, 
-  UserOutlined,
-  MailOutlined,
-  LockOutlined,
-  TeamOutlined
+  DeleteOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  SettingOutlined
 } from '@ant-design/icons';
 import { useRouter } from 'next/router';
+import UserFormModal from '@/components/admin/UserFormModal';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAuth } from '@/contexts/AuthContext';
 
 const { Title } = Typography;
-const { Option } = Select;
 
-// Sample user data - replace with actual data in production
-const SAMPLE_USERS = [
+// Mock data for users
+const mockUsers = [
   {
     id: 1,
-    name: 'John Admin',
+    fullName: 'John Doe',
     email: 'john@example.com',
     role: 'admin',
     status: 'active',
-    lastLogin: '2024-04-17 10:30:00'
+    lastLogin: '2024-04-17T10:00:00Z'
   },
   {
     id: 2,
-    name: 'Sarah Sales',
-    email: 'sarah@example.com',
+    fullName: 'Jane Smith',
+    email: 'jane@example.com',
     role: 'sales',
     status: 'active',
-    lastLogin: '2024-04-16 15:45:00'
+    lastLogin: '2024-04-16T15:30:00Z'
   },
   {
     id: 3,
-    name: 'Mike Support',
+    fullName: 'Mike Johnson',
     email: 'mike@example.com',
     role: 'support',
     status: 'inactive',
-    lastLogin: '2024-04-10 09:20:00'
+    lastLogin: '2024-04-15T09:15:00Z'
   }
 ];
 
-const UsersPage = memo(() => {
+const ROLE_COLORS = {
+  admin: 'red',
+  sales: 'blue',
+  support: 'green'
+};
+
+const UserManagementPage = () => {
   const router = useRouter();
-  const [form] = Form.useForm();
+  const { user } = useAuth();
+  const [users, setUsers] = useState(mockUsers);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Memoize columns configuration
-  const columns = useMemo(() => [
-    {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-      render: (text, record) => (
-        <Space>
-          <UserOutlined />
-          {text}
-        </Space>
-      )
-    },
-    {
-      title: 'Email',
-      dataIndex: 'email',
-      key: 'email',
-      render: (text) => (
-        <Space>
-          <MailOutlined />
-          {text}
-        </Space>
-      )
-    },
-    {
-      title: 'Role',
-      dataIndex: 'role',
-      key: 'role',
-      render: (role) => {
-        const roleColors = {
-          admin: 'red',
-          sales: 'blue',
-          support: 'green'
-        };
-        const roleLabels = {
-          admin: 'Admin',
-          sales: 'Sales',
-          support: 'Support'
-        };
-        return <Tag color={roleColors[role]}>{roleLabels[role]}</Tag>;
-      }
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status) => (
-        <Tag color={status === 'active' ? 'green' : 'default'}>
-          {status === 'active' ? 'Active' : 'Inactive'}
-        </Tag>
-      )
-    },
-    {
-      title: 'Last Login',
-      dataIndex: 'lastLogin',
-      key: 'lastLogin',
-      render: (text) => text || 'Never'
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Space>
-          <Button 
-            type="primary" 
-            icon={<EditOutlined />} 
-            onClick={() => handleEdit(record)}
-          />
-          <Popconfirm
-            title="Are you sure you want to delete this user?"
-            onConfirm={() => handleDelete(record.id)}
-            okText="Yes"
-            cancelText="No"
-          >
-            <Button 
-              danger 
-              icon={<DeleteOutlined />} 
-            />
-          </Popconfirm>
-        </Space>
-      )
-    }
-  ], []);
-
-  // Memoize sample data
-  const data = useMemo(() => SAMPLE_USERS, []);
-
-  const handleAdd = useCallback(() => {
-    setEditingUser(null);
-    form.resetFields();
+  const handleAddUser = () => {
+    setSelectedUser(null);
     setIsModalVisible(true);
-  }, [form]);
+  };
 
-  const handleEdit = useCallback((user) => {
-    setEditingUser(user);
-    form.setFieldsValue({
-      name: user.name,
-      email: user.email,
-      role: user.role
-    });
+  const handleEditUser = (user) => {
+    setSelectedUser(user);
     setIsModalVisible(true);
-  }, [form]);
+  };
 
-  const handleDelete = useCallback((userId) => {
+  const handleDeleteUser = async (userId) => {
     try {
-      const updatedUsers = SAMPLE_USERS.filter(user => user.id !== userId);
+      setLoading(true);
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setUsers(users.filter(user => user.id !== userId));
       message.success('User deleted successfully');
     } catch (error) {
       message.error('Failed to delete user');
-      console.error('Delete user error:', error);
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  };
 
-  const handleModalOk = useCallback(async (values) => {
-    setLoading(true);
+  const handleSaveUser = async (values) => {
     try {
-      if (editingUser) {
-        // Update existing user
-        const updatedUsers = SAMPLE_USERS.map(user => 
-          user.id === editingUser.id ? { ...user, ...values } : user
-        );
+      setLoading(true);
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      if (selectedUser) {
+        // Edit existing user
+        setUsers(users.map(user => 
+          user.id === selectedUser.id 
+            ? { ...user, ...values }
+            : user
+        ));
         message.success('User updated successfully');
       } else {
         // Add new user
         const newUser = {
           id: Date.now(),
           ...values,
-          status: 'active',
           lastLogin: null
         };
+        setUsers([...users, newUser]);
         message.success('User added successfully');
       }
+      
       setIsModalVisible(false);
-      form.resetFields();
-      setEditingUser(null);
     } catch (error) {
       message.error('Failed to save user');
-      console.error('Save user error:', error);
     } finally {
       setLoading(false);
     }
-  }, [editingUser, form]);
+  };
 
-  const handleModalCancel = useCallback(() => {
-    setIsModalVisible(false);
-    form.resetFields();
-    setEditingUser(null);
-  }, [form]);
+  const columns = useMemo(() => [
+    {
+      title: 'Full Name',
+      dataIndex: 'fullName',
+      key: 'fullName',
+      sorter: (a, b) => a.fullName.localeCompare(b.fullName)
+    },
+    {
+      title: 'Email',
+      dataIndex: 'email',
+      key: 'email',
+      sorter: (a, b) => a.email.localeCompare(b.email)
+    },
+    {
+      title: 'Role',
+      dataIndex: 'role',
+      key: 'role',
+      render: (role) => (
+        <Tag color={ROLE_COLORS[role]}>
+          {role.toUpperCase()}
+        </Tag>
+      ),
+      filters: [
+        { text: 'Admin', value: 'admin' },
+        { text: 'Sales', value: 'sales' },
+        { text: 'Support', value: 'support' }
+      ],
+      onFilter: (value, record) => record.role === value
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status) => (
+        <Tag color={status === 'active' ? 'success' : 'default'}>
+          {status === 'active' ? (
+            <Space>
+              <CheckCircleOutlined />
+              Active
+            </Space>
+          ) : (
+            <Space>
+              <CloseCircleOutlined />
+              Inactive
+            </Space>
+          )}
+        </Tag>
+      ),
+      filters: [
+        { text: 'Active', value: 'active' },
+        { text: 'Inactive', value: 'inactive' }
+      ],
+      onFilter: (value, record) => record.status === value
+    },
+    {
+      title: 'Last Login',
+      dataIndex: 'lastLogin',
+      key: 'lastLogin',
+      render: (date) => date ? new Date(date).toLocaleString() : 'Never',
+      sorter: (a, b) => {
+        if (!a.lastLogin) return 1;
+        if (!b.lastLogin) return -1;
+        return new Date(a.lastLogin) - new Date(b.lastLogin);
+      }
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_, record) => (
+        <Space>
+          <Tooltip title="Edit User">
+            <Button
+              type="link"
+              icon={<EditOutlined />}
+              onClick={() => handleEditUser(record)}
+            />
+          </Tooltip>
+          <Tooltip title="Delete User">
+            <Popconfirm
+              title="Are you sure you want to delete this user?"
+              description="This action cannot be undone."
+              onConfirm={() => handleDeleteUser(record.id)}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button
+                type="link"
+                danger
+                icon={<DeleteOutlined />}
+              />
+            </Popconfirm>
+          </Tooltip>
+        </Space>
+      )
+    }
+  ], []);
 
   return (
-    <ProtectedRoute requiredRole="admin">
-      <div style={{ padding: '24px' }}>
+    <ProtectedRoute allowedRoles={['admin']}>
+      <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <Card>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-            <Title level={2}>User Management</Title>
-            <Button 
-              type="primary" 
-              icon={<PlusOutlined />}
-              onClick={handleAdd}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Space>
+              <SettingOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
+              <Title level={4} style={{ margin: 0 }}>Admin Panel</Title>
+            </Space>
+            <Button
+              type="primary"
+              icon={<UserAddOutlined />}
+              onClick={handleAddUser}
             >
               Add User
             </Button>
           </div>
-
-          <Table 
-            columns={columns} 
-            dataSource={data} 
-            rowKey="id"
-            pagination={{ pageSize: 10 }}
-          />
         </Card>
 
-        <Modal
-          title={editingUser ? 'Edit User' : 'Add User'}
-          open={isModalVisible}
-          onOk={handleModalOk}
-          onCancel={handleModalCancel}
-          footer={null}
-        >
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={handleModalOk}
-            initialValues={{ role: 'sales' }}
-          >
-            <Form.Item
-              name="name"
-              label="Name"
-              rules={[{ required: true, message: 'Please enter the user name' }]}
-            >
-              <Input prefix={<UserOutlined />} placeholder="Enter user name" />
-            </Form.Item>
+        <Table
+          columns={columns}
+          dataSource={users}
+          rowKey="id"
+          loading={loading}
+          pagination={{
+            total: users.length,
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total) => `Total ${total} users`
+          }}
+        />
 
-            <Form.Item
-              name="email"
-              label="Email"
-              rules={[
-                { required: true, message: 'Please enter the email' },
-                { type: 'email', message: 'Please enter a valid email' }
-              ]}
-            >
-              <Input prefix={<MailOutlined />} placeholder="Enter email address" />
-            </Form.Item>
-
-            {!editingUser && (
-              <Form.Item
-                name="password"
-                label="Password"
-                rules={[
-                  { required: true, message: 'Please enter the password' },
-                  { min: 6, message: 'Password must be at least 6 characters' }
-                ]}
-              >
-                <Input.Password prefix={<LockOutlined />} placeholder="Enter password" />
-              </Form.Item>
-            )}
-
-            <Form.Item
-              name="role"
-              label="Role"
-              rules={[{ required: true, message: 'Please select a role' }]}
-            >
-              <Select prefix={<TeamOutlined />} placeholder="Select role">
-                <Option value="admin">Admin</Option>
-                <Option value="sales">Sales</Option>
-                <Option value="support">Support</Option>
-              </Select>
-            </Form.Item>
-
-            <Form.Item>
-              <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
-                <Button onClick={handleModalCancel}>
-                  Cancel
-                </Button>
-                <Button type="primary" htmlType="submit" loading={loading}>
-                  {editingUser ? 'Update' : 'Add'} User
-                </Button>
-              </Space>
-            </Form.Item>
-          </Form>
-        </Modal>
-      </div>
+        <UserFormModal
+          visible={isModalVisible}
+          onCancel={() => setIsModalVisible(false)}
+          onSave={handleSaveUser}
+          user={selectedUser}
+          loading={loading}
+        />
+      </Space>
     </ProtectedRoute>
   );
-});
+};
 
-UsersPage.displayName = 'UsersPage';
-
-export default UsersPage; 
+export default UserManagementPage; 
