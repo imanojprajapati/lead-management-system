@@ -526,74 +526,74 @@ const LeadForm = ({
                 <Title level={4}>Personal Information</Title>
                 <Row gutter={24}>
                   <Col span={12}>
-                    <Form.Item
-                      name="fullName"
-                      label="Full Name"
+                <Form.Item
+                  name="fullName"
+                  label="Full Name"
                       rules={[{ required: true, message: 'Please enter the full name' }]}
                     >
                       <Input prefix={<UserOutlined />} placeholder="Enter full legal name" />
-                    </Form.Item>
-                  </Col>
+                </Form.Item>
+              </Col>
                   <Col span={12}>
-                    <Form.Item
-                      name="email"
-                      label="Email Address"
-                      rules={[
-                        { required: true, message: 'Please enter the email address' },
-                        { type: 'email', message: 'Please enter a valid email address' }
-                      ]}
-                    >
+                <Form.Item
+                  name="email"
+                  label="Email Address"
+                  rules={[
+                    { required: true, message: 'Please enter the email address' },
+                    { type: 'email', message: 'Please enter a valid email address' }
+                  ]}
+                >
                       <Input prefix={<MailOutlined />} placeholder="Enter email address" />
-                    </Form.Item>
-                  </Col>
-                </Row>
+                </Form.Item>
+              </Col>
+            </Row>
 
                 <Row gutter={24}>
                   <Col span={12}>
-                    <Form.Item
-                      name="phone"
-                      label="Phone Number"
-                      rules={[
-                        { required: true, message: 'Please enter the phone number' },
-                        { pattern: /^\+?[1-9]\d{1,14}$/, message: 'Please enter a valid phone number' }
-                      ]}
-                    >
-                      <Input prefix={<PhoneOutlined />} placeholder="Enter phone number with country code" />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      name="nationality"
-                      label="Nationality"
-                      rules={[{ required: true, message: 'Please select nationality' }]}
-                    >
-                      <Select
-                        showSearch
-                        placeholder="Select nationality"
-                        optionFilterProp="children"
-                      >
-                        {COUNTRIES.map(country => (
-                          <Option key={country.value} value={country.value}>{country.label}</Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-                  </Col>
-                </Row>
-
                 <Form.Item
-                  name="currentLocation"
-                  label="Current Location"
+                  name="phone"
+                  label="Phone Number"
+                  rules={[
+                    { required: true, message: 'Please enter the phone number' },
+                    { pattern: /^\+?[1-9]\d{1,14}$/, message: 'Please enter a valid phone number' }
+                  ]}
+                >
+                      <Input prefix={<PhoneOutlined />} placeholder="Enter phone number with country code" />
+                </Form.Item>
+              </Col>
+                  <Col span={12}>
+                <Form.Item
+                  name="nationality"
+                  label="Nationality"
+                  rules={[{ required: true, message: 'Please select nationality' }]}
                 >
                   <Select
-                    showSearch
-                    placeholder="Select current location"
+                        showSearch
+                    placeholder="Select nationality"
                     optionFilterProp="children"
                   >
                     {COUNTRIES.map(country => (
-                      <Option key={country.value} value={country.value}>{country.label}</Option>
+                          <Option key={country.value} value={country.value}>{country.label}</Option>
                     ))}
                   </Select>
                 </Form.Item>
+              </Col>
+            </Row>
+
+            <Form.Item
+              name="currentLocation"
+              label="Current Location"
+            >
+              <Select
+                    showSearch
+                placeholder="Select current location"
+                optionFilterProp="children"
+              >
+                {COUNTRIES.map(country => (
+                      <Option key={country.value} value={country.value}>{country.label}</Option>
+                ))}
+              </Select>
+            </Form.Item>
 
                 <Form.Item
                   name="consent"
@@ -619,41 +619,41 @@ const LeadForm = ({
                 <Title level={4}>Visa Details</Title>
                 <Row gutter={24}>
                   <Col span={12}>
-                    <Form.Item
-                      name="visaType"
-                      label="Visa Type Interested In"
+                <Form.Item
+                  name="visaType"
+                  label="Visa Type Interested In"
                       rules={[{ required: true, message: 'Please select at least one visa type' }]}
-                    >
-                      <Select
-                        mode="multiple"
-                        placeholder="Select visa types"
-                        optionFilterProp="children"
-                      >
-                        {VISA_TYPES.map(type => (
+                >
+                  <Select
+                    mode="multiple"
+                    placeholder="Select visa types"
+                    optionFilterProp="children"
+                  >
+                    {VISA_TYPES.map(type => (
                           <Option key={type.value} value={type.value}>{type.label}</Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-                  </Col>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Col>
                   <Col span={12}>
-                    <Form.Item
-                      name="destinationCountry"
-                      label="Destination Country"
-                      rules={[{ required: true, message: 'Please select destination country' }]}
-                    >
-                      <Select
+                <Form.Item
+                  name="destinationCountry"
+                  label="Destination Country"
+                  rules={[{ required: true, message: 'Please select destination country' }]}
+                >
+                  <Select
                         showSearch
-                        placeholder="Select destination country"
-                        optionFilterProp="children"
+                    placeholder="Select destination country"
+                    optionFilterProp="children"
                         onChange={handleDestinationCountryChange}
-                      >
-                        {COUNTRIES.map(country => (
+                  >
+                    {COUNTRIES.map(country => (
                           <Option key={country.value} value={country.value}>{country.label}</Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-                  </Col>
-                </Row>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
 
                 <Form.Item
                   name="preferredImmigrationProgram"
@@ -673,35 +673,35 @@ const LeadForm = ({
 
                 <Row gutter={24}>
                   <Col span={12}>
-                    <Form.Item
-                      name="inquiryDate"
-                      label="Inquiry Date"
-                      rules={[{ required: true, message: 'Please select inquiry date' }]}
-                    >
-                      <DatePicker style={{ width: '100%' }} />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      name="leadSource"
-                      label="Source of Lead"
-                      rules={[{ required: true, message: 'Please select lead source' }]}
-                    >
-                      <Select placeholder="Select lead source">
-                        {LEAD_SOURCES.map(source => (
-                          <Option key={source.value} value={source.value}>{source.label}</Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-                  </Col>
-                </Row>
-
                 <Form.Item
-                  name="additionalNotes"
-                  label="Additional Notes"
+                  name="inquiryDate"
+                  label="Inquiry Date"
+                  rules={[{ required: true, message: 'Please select inquiry date' }]}
                 >
-                  <TextArea rows={4} placeholder="Enter any additional information" />
+                      <DatePicker style={{ width: '100%' }} />
                 </Form.Item>
+              </Col>
+                  <Col span={12}>
+                <Form.Item
+                  name="leadSource"
+                  label="Source of Lead"
+                  rules={[{ required: true, message: 'Please select lead source' }]}
+                >
+                      <Select placeholder="Select lead source">
+                    {LEAD_SOURCES.map(source => (
+                          <Option key={source.value} value={source.value}>{source.label}</Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Form.Item
+              name="additionalNotes"
+              label="Additional Notes"
+            >
+                  <TextArea rows={4} placeholder="Enter any additional information" />
+            </Form.Item>
 
                 <Form.Item>
                   <Space>
@@ -809,9 +809,9 @@ const LeadForm = ({
             {currentStep === 3 && (
               <>
                 <Title level={4}>Documents</Title>
-                <Form.Item
+            <Form.Item
                   name="passportCopy"
-                  label="Passport Copy"
+              label="Passport Copy"
                   extra="Upload passport copy (.pdf, .jpg)"
                 >
                   <Upload
@@ -822,11 +822,11 @@ const LeadForm = ({
                   >
                     <Button icon={<UploadOutlined />}>Upload Passport Copy</Button>
                   </Upload>
-                </Form.Item>
+            </Form.Item>
 
-                <Form.Item
-                  name="resume"
-                  label="Resume/CV"
+            <Form.Item
+              name="resume"
+              label="Resume/CV"
                   extra="Upload resume/CV (.pdf, .docx)"
                 >
                   <Upload
@@ -837,11 +837,11 @@ const LeadForm = ({
                   >
                     <Button icon={<UploadOutlined />}>Upload Resume/CV</Button>
                   </Upload>
-                </Form.Item>
+            </Form.Item>
 
-                <Form.Item
+            <Form.Item
                   name="otherDocs"
-                  label="Other Supporting Documents"
+              label="Other Supporting Documents"
                   extra="Upload other documents (IELTS, ECA, etc.)"
                 >
                   <Upload
@@ -852,11 +852,11 @@ const LeadForm = ({
                   >
                     <Button icon={<UploadOutlined />}>Upload Other Documents</Button>
                   </Upload>
-                </Form.Item>
+            </Form.Item>
 
                 <Divider />
 
-                {/* Custom Fields Section */}
+            {/* Custom Fields Section */}
                 {customFieldsSection}
 
                 <Form.Item>
@@ -868,7 +868,7 @@ const LeadForm = ({
                       {isEdit ? 'Update Lead' : 'Create Lead'}
                     </Button>
                   </Space>
-                </Form.Item>
+              </Form.Item>
               </>
             )}
           </Form>

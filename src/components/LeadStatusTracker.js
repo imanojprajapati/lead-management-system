@@ -1,110 +1,139 @@
-import React from 'react';
-import { Steps, Card, Typography, Button, Space, message, Tooltip } from 'antd';
+import React, { useState } from 'react';
+import { Steps, Select, Card, message, Typography, Space, Tag } from 'antd';
 import { 
   UserAddOutlined, 
   PhoneOutlined, 
   SyncOutlined, 
   CheckCircleOutlined, 
-  CloseCircleOutlined,
-  CheckOutlined
+  CheckOutlined 
 } from '@ant-design/icons';
+import PropTypes from 'prop-types';
 
-const { Title, Text } = Typography;
-
-const LEAD_STAGES = [
-  {
-    key: 'new',
-    title: 'New',
-    icon: <UserAddOutlined />,
-    description: 'Lead just created'
-  },
-  {
-    key: 'contacted',
-    title: 'Contacted',
-    icon: <PhoneOutlined />,
-    description: 'Initial contact made'
-  },
-  {
-    key: 'in_progress',
-    title: 'In Progress',
-    icon: <SyncOutlined />,
-    description: 'Working on the lead'
-  },
-  {
-    key: 'followed_up',
-    title: 'Followed Up',
-    icon: <CheckCircleOutlined />,
-    description: 'Follow-up completed'
-  },
-  {
-    key: 'closed',
-    title: 'Closed',
-    icon: <CloseCircleOutlined />,
-    description: 'Lead closed'
-  }
-];
+const { Title } = Typography;
+const { Option } = Select;
 
 const LeadStatusTracker = ({ 
-  currentStage, 
-  onStageChange,
-  leadScore,
-  lastUpdated
+  currentStatus, 
+  onStatusChange, 
+  leadScore = 0,
+  lastUpdated = null
 }) => {
-  const currentIndex = LEAD_STAGES.findIndex(stage => stage.key === currentStage);
+  const [loading, setLoading] = useState(false);
 
-  const handleStageClick = (stage) => {
-    if (LEAD_STAGES.findIndex(s => s.key === stage.key) <= currentIndex + 1) {
-      onStageChange(stage.key);
-      message.success(`Lead status updated to ${stage.title}`);
-    } else {
-      message.warning('Cannot skip stages. Please complete the current stage first.');
+  // Define the stages with their icons and colors
+  const stages = [
+    { 
+      key: 'new', 
+      title: 'New', 
+      icon: <UserAddOutlined />, 
+      color: 'blue' 
+    },
+    { 
+      key: 'contacted', 
+      title: 'Contacted', 
+      icon: <PhoneOutlined />, 
+      color: 'cyan' 
+    },
+    { 
+      key: 'in_progress', 
+      title: 'In Progress', 
+      icon: <SyncOutlined />, 
+      color: 'orange' 
+    },
+    { 
+      key: 'followed_up', 
+      title: 'Followed Up', 
+      icon: <CheckCircleOutlined />, 
+      color: 'purple' 
+    },
+    { 
+      key: 'closed', 
+      title: 'Closed', 
+      icon: <CheckOutlined />, 
+      color: 'green' 
+    }
+  ];
+
+  // Find the current step index
+  const currentStepIndex = stages.findIndex(stage => stage.key === currentStatus);
+
+  // Handle status change
+  const handleStatusChange = async (newStatus) => {
+    if (newStatus === currentStatus) return;
+    
+    setLoading(true);
+    try {
+      await onStatusChange(newStatus);
+      message.success(`Lead status updated to ${stages.find(s => s.key === newStatus).title}`);
+    } catch (error) {
+      message.error('Failed to update lead status');
+      console.error('Status update error:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Get score color based on value
+  const getScoreColor = (score) => {
+    if (score >= 80) return 'green';
+    if (score >= 60) return 'orange';
+    return 'red';
+  };
+
   return (
-    <Card
-      title={
-        <Space>
-          <SyncOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
+    <Card className="lead-status-tracker">
+      <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Title level={4} style={{ margin: 0 }}>Lead Status</Title>
-        </Space>
-      }
-      extra={
-        <Space>
-          <Text type="secondary">Score: </Text>
-          <Text strong style={{ 
-            color: leadScore >= 80 ? '#52c41a' : 
-                   leadScore >= 60 ? '#1890ff' : 
-                   leadScore >= 40 ? '#faad14' : '#ff4d4f'
-          }}>
-            {leadScore}
-          </Text>
-        </Space>
-      }
-    >
-      <Steps
-        current={currentIndex}
-        items={LEAD_STAGES.map(stage => ({
-          title: (
-            <Tooltip title={stage.description}>
-              <span>{stage.title}</span>
-            </Tooltip>
-          ),
-          icon: stage.icon,
-          status: stage.key === currentStage ? 'process' : 
-                 LEAD_STAGES.findIndex(s => s.key === stage.key) < currentIndex ? 'finish' : 'wait',
-          onClick: () => handleStageClick(stage)
-        }))}
-        style={{ cursor: 'pointer' }}
-      />
-      
-      <div style={{ marginTop: 16, textAlign: 'right' }}>
-        <Text type="secondary">
-          Last updated: {lastUpdated}
-        </Text>
-      </div>
+          <Space>
+            <Tag color={getScoreColor(leadScore)}>Score: {leadScore}</Tag>
+            {lastUpdated && (
+              <Tag color="blue">Updated: {lastUpdated}</Tag>
+            )}
+          </Space>
+        </div>
+        
+        <Steps
+          current={currentStepIndex}
+          items={stages.map(stage => ({
+            title: stage.title,
+            icon: stage.icon,
+            status: currentStepIndex > stages.findIndex(s => s.key === stage.key) 
+              ? 'finish' 
+              : currentStepIndex === stages.findIndex(s => s.key === stage.key) 
+                ? 'process' 
+                : 'wait'
+          }))}
+          style={{ marginBottom: 24 }}
+        />
+        
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Select
+            value={currentStatus}
+            onChange={handleStatusChange}
+            style={{ width: 200 }}
+            loading={loading}
+          >
+            {stages.map(stage => (
+              <Option key={stage.key} value={stage.key}>
+                <Space>
+                  {stage.icon}
+                  {stage.title}
+                </Space>
+              </Option>
+            ))}
+          </Select>
+        </div>
+      </Space>
     </Card>
   );
+};
+
+LeadStatusTracker.propTypes = {
+  currentStatus: PropTypes.oneOf(['new', 'contacted', 'in_progress', 'followed_up', 'closed']).isRequired,
+  onStatusChange: PropTypes.func.isRequired,
+  leadScore: PropTypes.number,
+  lastUpdated: PropTypes.string
 };
 
 export default LeadStatusTracker; 

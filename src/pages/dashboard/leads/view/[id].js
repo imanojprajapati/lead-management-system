@@ -177,6 +177,7 @@ const ViewLeadPage = () => {
       message.success('Lead stage updated successfully');
     } catch (error) {
       message.error('Failed to update lead stage');
+      throw error; // Re-throw to let the component handle the error
     }
   };
 
@@ -213,8 +214,8 @@ const ViewLeadPage = () => {
         </Space>
 
         <LeadStatusTracker
-          currentStage={lead?.leadStage || 'new'}
-          onStageChange={handleStageChange}
+          currentStatus={lead?.leadStage || 'new'}
+          onStatusChange={handleStageChange}
           leadScore={lead?.leadScore || 0}
           lastUpdated={lead?.lastUpdated || dayjs().format('YYYY-MM-DD HH:mm:ss')}
         />
