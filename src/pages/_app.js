@@ -58,8 +58,8 @@ const LayoutContent = ({ children, collapsed, setCollapsed, currentRoute }) => {
       <Sider 
         trigger={null} 
         collapsible 
-        collapsed={collapsed}
-        style={{ 
+        collapsed={collapsed} 
+        style={{
           background: '#fff',
           borderRight: '1px solid #f0f0f0'
         }}
@@ -97,9 +97,9 @@ const LayoutContent = ({ children, collapsed, setCollapsed, currentRoute }) => {
       <Layout>
         <Header style={{ 
           padding: '0 24px', 
-          background: '#fff',
-          display: 'flex',
-          justifyContent: 'space-between',
+          background: '#fff', 
+          display: 'flex', 
+          justifyContent: 'space-between', 
           alignItems: 'center'
         }}>
           <Button
