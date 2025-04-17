@@ -206,29 +206,62 @@ const initialLeads = [
 
 const LeadsContext = createContext();
 
+export const useLeads = () => {
+  const context = useContext(LeadsContext);
+  if (!context) {
+    throw new Error('useLeads must be used within a LeadsProvider');
+  }
+  return context;
+};
+
 export const LeadsProvider = ({ children }) => {
   const [leads, setLeads] = useState(initialLeads);
   const [loading, setLoading] = useState(false);
 
-  const addLead = useCallback((newLead) => {
-    setLeads(prevLeads => [...prevLeads, { ...newLead, id: Date.now().toString() }]);
+  const addLead = useCallback(async (leadData) => {
+    setLoading(true);
+    try {
+      // TODO: Replace with actual API call
+      const newLead = {
+        id: Date.now(),
+        ...leadData,
+        createdAt: new Date().toISOString(),
+        status: 'New',
+        leadScore: 0
+      };
+      setLeads(prev => [...prev, newLead]);
+      return newLead;
+    } catch (error) {
+      console.error('Error adding lead:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const updateLead = useCallback((id, updatedLead) => {
-    setLeads(prevLeads => 
-      prevLeads.map(lead => lead.id === id ? { ...lead, ...updatedLead } : lead)
-    );
+  const updateLead = useCallback(async (id, leadData) => {
+    setLoading(true);
+    try {
+      // TODO: Replace with actual API call
+      setLeads(prev => prev.map(lead => 
+        lead.id === id ? { ...lead, ...leadData } : lead
+      ));
+    } catch (error) {
+      console.error('Error updating lead:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const deleteLead = useCallback(async (id) => {
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setLeads(prevLeads => prevLeads.filter(lead => lead.id !== id));
-      return Promise.resolve();
+      // TODO: Replace with actual API call
+      setLeads(prev => prev.filter(lead => lead.id !== id));
     } catch (error) {
-      return Promise.reject(error);
+      console.error('Error deleting lead:', error);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -237,14 +270,13 @@ export const LeadsProvider = ({ children }) => {
   const updateNotes = useCallback(async (id, notes) => {
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setLeads(prevLeads => 
-        prevLeads.map(lead => lead.id === id ? { ...lead, notes } : lead)
-      );
-      return Promise.resolve();
+      // TODO: Replace with actual API call
+      setLeads(prev => prev.map(lead => 
+        lead.id === id ? { ...lead, notes } : lead
+      ));
     } catch (error) {
-      return Promise.reject(error);
+      console.error('Error updating notes:', error);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -264,14 +296,6 @@ export const LeadsProvider = ({ children }) => {
       {children}
     </LeadsContext.Provider>
   );
-};
-
-export const useLeads = () => {
-  const context = useContext(LeadsContext);
-  if (!context) {
-    throw new Error('useLeads must be used within a LeadsProvider');
-  }
-  return context;
 };
 
 export default LeadsContext; 

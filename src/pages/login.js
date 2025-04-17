@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 import { useRouter } from 'next/router';
 import { Form, Input, Button, Card, Typography, Space } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
@@ -6,19 +6,22 @@ import { useAuth } from '../contexts/AuthContext';
 
 const { Title } = Typography;
 
-const LoginPage = () => {
+const LoginPage = memo(() => {
   const router = useRouter();
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
 
-  const onFinish = async (values) => {
+  const onFinish = useCallback(async (values) => {
     setLoading(true);
-    const result = await login(values.username, values.password);
-    setLoading(false);
-    if (result.success) {
-      router.push(result.redirectTo);
+    try {
+      const result = await login(values.username, values.password);
+      if (result.success) {
+        router.replace(result.redirectTo);
+      }
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [login, router]);
 
   return (
     <div style={{ 
@@ -39,6 +42,7 @@ const LoginPage = () => {
             name="login"
             onFinish={onFinish}
             layout="vertical"
+            initialValues={{ remember: true }}
           >
             <Form.Item
               name="username"
@@ -48,6 +52,7 @@ const LoginPage = () => {
                 prefix={<UserOutlined />} 
                 placeholder="Username" 
                 size="large"
+                autoComplete="username"
               />
             </Form.Item>
 
@@ -59,6 +64,7 @@ const LoginPage = () => {
                 prefix={<LockOutlined />}
                 placeholder="Password"
                 size="large"
+                autoComplete="current-password"
               />
             </Form.Item>
 
@@ -86,6 +92,8 @@ const LoginPage = () => {
       </Card>
     </div>
   );
-};
+});
+
+LoginPage.displayName = 'LoginPage';
 
 export default LoginPage; 

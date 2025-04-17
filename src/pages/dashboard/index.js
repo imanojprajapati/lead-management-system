@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo, useMemo } from 'react';
 import { 
   Card, 
   Row, 
@@ -74,8 +74,36 @@ const dashboardData = {
   ]
 };
 
-const Dashboard = () => {
+const DashboardPage = memo(() => {
   const router = useRouter();
+
+  // Memoize statistics data to prevent unnecessary recalculations
+  const statistics = useMemo(() => [
+    {
+      title: 'Total Leads',
+      value: 150,
+      icon: <UserOutlined />,
+      color: '#1890ff'
+    },
+    {
+      title: 'Active Leads',
+      value: 45,
+      icon: <TeamOutlined />,
+      color: '#52c41a'
+    },
+    {
+      title: 'Converted',
+      value: 85,
+      icon: <CheckCircleOutlined />,
+      color: '#722ed1'
+    },
+    {
+      title: 'Pending',
+      value: 20,
+      icon: <ClockCircleOutlined />,
+      color: '#faad14'
+    }
+  ], []);
 
   const staffColumns = [
     {
@@ -187,134 +215,92 @@ const Dashboard = () => {
   ];
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredPermission="dashboard">
       <div style={{ padding: '24px' }}>
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <Card>
-            <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-              <Space>
-                <LineChartOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
-                <Title level={4} style={{ margin: 0 }}>Dashboard Overview</Title>
+        <Title level={2}>Dashboard</Title>
+        
+        <Row gutter={[16, 16]}>
+          {statistics.map((stat, index) => (
+            <Col xs={24} sm={12} md={6} key={index}>
+              <Card>
+                <Statistic
+                  title={stat.title}
+                  value={stat.value}
+                  prefix={stat.icon}
+                  valueStyle={{ color: stat.color }}
+                />
+              </Card>
+            </Col>
+          ))}
+        </Row>
+
+        <Row gutter={[16, 16]}>
+          <Col span={12}>
+            <Card title="Lead Pipeline">
+              <Space direction="vertical" style={{ width: '100%' }}>
+                <div>
+                  <Text>New Leads</Text>
+                  <Progress 
+                    percent={Math.round((dashboardData.leadStats.new / dashboardData.leadStats.total) * 100)} 
+                    status="active"
+                  />
+                </div>
+                <div>
+                  <Text>Contacted</Text>
+                  <Progress 
+                    percent={Math.round((dashboardData.leadStats.contacted / dashboardData.leadStats.total) * 100)} 
+                    status="active"
+                  />
+                </div>
+                <div>
+                  <Text>In Progress</Text>
+                  <Progress 
+                    percent={Math.round((dashboardData.leadStats.inProgress / dashboardData.leadStats.total) * 100)} 
+                    status="active"
+                  />
+                </div>
+                <div>
+                  <Text>Followed Up</Text>
+                  <Progress 
+                    percent={Math.round((dashboardData.leadStats.followedUp / dashboardData.leadStats.total) * 100)} 
+                    status="active"
+                  />
+                </div>
+                <div>
+                  <Text>Closed</Text>
+                  <Progress 
+                    percent={Math.round((dashboardData.leadStats.closed / dashboardData.leadStats.total) * 100)} 
+                    status="success"
+                  />
+                </div>
               </Space>
-              <Space>
-                <Button 
-                  type="primary" 
-                  icon={<BarChartOutlined />}
-                  onClick={() => router.push('/dashboard/admin/analytics')}
-                >
-                  Full Analytics
-                </Button>
-              </Space>
-            </Space>
-          </Card>
+            </Card>
+          </Col>
+          <Col span={12}>
+            <Card title="Staff Performance">
+              <Table 
+                columns={staffColumns} 
+                dataSource={dashboardData.staffPerformance}
+                rowKey="id"
+                pagination={false}
+              />
+            </Card>
+          </Col>
+        </Row>
 
-          <Row gutter={[16, 16]}>
-            <Col span={6}>
-              <Card>
-                <Statistic
-                  title="Total Leads"
-                  value={dashboardData.leadStats.total}
-                  prefix={<TeamOutlined />}
-                />
-              </Card>
-            </Col>
-            <Col span={6}>
-              <Card>
-                <Statistic
-                  title="Conversion Rate"
-                  value={dashboardData.conversionRate}
-                  suffix="%"
-                  prefix={<ArrowUpOutlined style={{ color: '#52c41a' }} />}
-                />
-              </Card>
-            </Col>
-            <Col span={6}>
-              <Card>
-                <Statistic
-                  title="Follow-up Success"
-                  value={dashboardData.followUpSuccess}
-                  suffix="%"
-                  prefix={<CheckCircleOutlined style={{ color: '#1890ff' }} />}
-                />
-              </Card>
-            </Col>
-            <Col span={6}>
-              <Card>
-                <Statistic
-                  title="Active Leads"
-                  value={dashboardData.leadStats.inProgress}
-                  prefix={<ClockCircleOutlined style={{ color: '#faad14' }} />}
-                />
-              </Card>
-            </Col>
-          </Row>
-
-          <Row gutter={[16, 16]}>
-            <Col span={12}>
-              <Card title="Lead Pipeline">
-                <Space direction="vertical" style={{ width: '100%' }}>
-                  <div>
-                    <Text>New Leads</Text>
-                    <Progress 
-                      percent={Math.round((dashboardData.leadStats.new / dashboardData.leadStats.total) * 100)} 
-                      status="active"
-                    />
-                  </div>
-                  <div>
-                    <Text>Contacted</Text>
-                    <Progress 
-                      percent={Math.round((dashboardData.leadStats.contacted / dashboardData.leadStats.total) * 100)} 
-                      status="active"
-                    />
-                  </div>
-                  <div>
-                    <Text>In Progress</Text>
-                    <Progress 
-                      percent={Math.round((dashboardData.leadStats.inProgress / dashboardData.leadStats.total) * 100)} 
-                      status="active"
-                    />
-                  </div>
-                  <div>
-                    <Text>Followed Up</Text>
-                    <Progress 
-                      percent={Math.round((dashboardData.leadStats.followedUp / dashboardData.leadStats.total) * 100)} 
-                      status="active"
-                    />
-                  </div>
-                  <div>
-                    <Text>Closed</Text>
-                    <Progress 
-                      percent={Math.round((dashboardData.leadStats.closed / dashboardData.leadStats.total) * 100)} 
-                      status="success"
-                    />
-                  </div>
-                </Space>
-              </Card>
-            </Col>
-            <Col span={12}>
-              <Card title="Staff Performance">
-                <Table 
-                  columns={staffColumns} 
-                  dataSource={dashboardData.staffPerformance}
-                  rowKey="id"
-                  pagination={false}
-                />
-              </Card>
-            </Col>
-          </Row>
-
-          <Card title="Recent Leads">
-            <Table 
-              columns={recentLeadsColumns} 
-              dataSource={dashboardData.recentLeads}
-              rowKey="id"
-              pagination={false}
-            />
-          </Card>
-        </Space>
+        <Card title="Recent Leads">
+          <Table 
+            columns={recentLeadsColumns} 
+            dataSource={dashboardData.recentLeads}
+            rowKey="id"
+            pagination={false}
+          />
+        </Card>
       </div>
     </ProtectedRoute>
   );
-};
+});
 
-export default Dashboard; 
+DashboardPage.displayName = 'DashboardPage';
+
+export default DashboardPage; 

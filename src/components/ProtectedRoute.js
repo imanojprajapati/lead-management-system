@@ -1,28 +1,27 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, memo } from 'react';
 import { useRouter } from 'next/router';
 import PropTypes from 'prop-types';
 import { useAuth } from '../contexts/AuthContext';
 import { Result, Button } from 'antd';
 
-const ProtectedRoute = ({ children, requiredPermission }) => {
+const ProtectedRoute = memo(({ children, requiredPermission }) => {
   const router = useRouter();
   const { user, loading, isAuthenticated, hasPermission } = useAuth();
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      router.push('/login');
+      router.replace('/login');
     }
   }, [loading, isAuthenticated, router]);
 
   if (loading) {
-    return null; // Or a loading spinner
+    return null;
   }
 
   if (!isAuthenticated) {
     return null;
   }
 
-  // Check if user has required permission
   if (requiredPermission && !hasPermission(requiredPermission)) {
     return (
       <Result
@@ -30,7 +29,10 @@ const ProtectedRoute = ({ children, requiredPermission }) => {
         title="403"
         subTitle="Sorry, you are not authorized to access this page."
         extra={
-          <Button type="primary" onClick={() => router.push('/dashboard/leads')}>
+          <Button 
+            type="primary" 
+            onClick={() => router.replace('/dashboard/leads')}
+          >
             Back to Leads
           </Button>
         }
@@ -39,7 +41,9 @@ const ProtectedRoute = ({ children, requiredPermission }) => {
   }
 
   return children;
-};
+});
+
+ProtectedRoute.displayName = 'ProtectedRoute';
 
 ProtectedRoute.propTypes = {
   children: PropTypes.node.isRequired,

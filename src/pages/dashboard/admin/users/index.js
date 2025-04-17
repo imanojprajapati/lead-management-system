@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { memo, useMemo, useCallback, useState } from 'react';
 import { 
   Table, 
   Button, 
@@ -56,71 +56,14 @@ const SAMPLE_USERS = [
   }
 ];
 
-const UserManagementPage = () => {
+const UsersPage = memo(() => {
   const router = useRouter();
   const [form] = Form.useForm();
-  const [users, setUsers] = useState(SAMPLE_USERS);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Handle form submission
-  const handleSubmit = async (values) => {
-    setLoading(true);
-    try {
-      if (editingUser) {
-        // Update existing user
-        const updatedUsers = users.map(user => 
-          user.id === editingUser.id ? { ...user, ...values } : user
-        );
-        setUsers(updatedUsers);
-        message.success('User updated successfully');
-      } else {
-        // Add new user
-        const newUser = {
-          id: Date.now(),
-          ...values,
-          status: 'active',
-          lastLogin: null
-        };
-        setUsers([...users, newUser]);
-        message.success('User added successfully');
-      }
-      setModalVisible(false);
-      form.resetFields();
-      setEditingUser(null);
-    } catch (error) {
-      message.error('Failed to save user');
-      console.error('Save user error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Handle edit user
-  const handleEdit = (user) => {
-    setEditingUser(user);
-    form.setFieldsValue({
-      name: user.name,
-      email: user.email,
-      role: user.role
-    });
-    setModalVisible(true);
-  };
-
-  // Handle delete user
-  const handleDelete = (userId) => {
-    try {
-      const updatedUsers = users.filter(user => user.id !== userId);
-      setUsers(updatedUsers);
-      message.success('User deleted successfully');
-    } catch (error) {
-      message.error('Failed to delete user');
-      console.error('Delete user error:', error);
-    }
-  };
-
-  // Table columns
+  // Memoize columns configuration
   const columns = useMemo(() => [
     {
       title: 'Name',
@@ -204,6 +147,71 @@ const UserManagementPage = () => {
     }
   ], []);
 
+  // Memoize sample data
+  const data = useMemo(() => SAMPLE_USERS, []);
+
+  const handleAdd = useCallback(() => {
+    setEditingUser(null);
+    form.resetFields();
+    setIsModalVisible(true);
+  }, [form]);
+
+  const handleEdit = useCallback((user) => {
+    setEditingUser(user);
+    form.setFieldsValue({
+      name: user.name,
+      email: user.email,
+      role: user.role
+    });
+    setIsModalVisible(true);
+  }, [form]);
+
+  const handleDelete = useCallback((userId) => {
+    try {
+      const updatedUsers = SAMPLE_USERS.filter(user => user.id !== userId);
+      message.success('User deleted successfully');
+    } catch (error) {
+      message.error('Failed to delete user');
+      console.error('Delete user error:', error);
+    }
+  }, []);
+
+  const handleModalOk = useCallback(async (values) => {
+    setLoading(true);
+    try {
+      if (editingUser) {
+        // Update existing user
+        const updatedUsers = SAMPLE_USERS.map(user => 
+          user.id === editingUser.id ? { ...user, ...values } : user
+        );
+        message.success('User updated successfully');
+      } else {
+        // Add new user
+        const newUser = {
+          id: Date.now(),
+          ...values,
+          status: 'active',
+          lastLogin: null
+        };
+        message.success('User added successfully');
+      }
+      setIsModalVisible(false);
+      form.resetFields();
+      setEditingUser(null);
+    } catch (error) {
+      message.error('Failed to save user');
+      console.error('Save user error:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [editingUser, form]);
+
+  const handleModalCancel = useCallback(() => {
+    setIsModalVisible(false);
+    form.resetFields();
+    setEditingUser(null);
+  }, [form]);
+
   return (
     <ProtectedRoute requiredRole="admin">
       <div style={{ padding: '24px' }}>
@@ -213,11 +221,7 @@ const UserManagementPage = () => {
             <Button 
               type="primary" 
               icon={<PlusOutlined />}
-              onClick={() => {
-                setEditingUser(null);
-                form.resetFields();
-                setModalVisible(true);
-              }}
+              onClick={handleAdd}
             >
               Add User
             </Button>
@@ -225,7 +229,7 @@ const UserManagementPage = () => {
 
           <Table 
             columns={columns} 
-            dataSource={users} 
+            dataSource={data} 
             rowKey="id"
             pagination={{ pageSize: 10 }}
           />
@@ -233,18 +237,15 @@ const UserManagementPage = () => {
 
         <Modal
           title={editingUser ? 'Edit User' : 'Add User'}
-          open={modalVisible}
-          onCancel={() => {
-            setModalVisible(false);
-            form.resetFields();
-            setEditingUser(null);
-          }}
+          open={isModalVisible}
+          onOk={handleModalOk}
+          onCancel={handleModalCancel}
           footer={null}
         >
           <Form
             form={form}
             layout="vertical"
-            onFinish={handleSubmit}
+            onFinish={handleModalOk}
             initialValues={{ role: 'sales' }}
           >
             <Form.Item
@@ -293,7 +294,7 @@ const UserManagementPage = () => {
 
             <Form.Item>
               <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
-                <Button onClick={() => setModalVisible(false)}>
+                <Button onClick={handleModalCancel}>
                   Cancel
                 </Button>
                 <Button type="primary" htmlType="submit" loading={loading}>
@@ -306,6 +307,8 @@ const UserManagementPage = () => {
       </div>
     </ProtectedRoute>
   );
-};
+});
 
-export default UserManagementPage; 
+UsersPage.displayName = 'UsersPage';
+
+export default UsersPage; 
