@@ -8,8 +8,7 @@ import {
   MailOutlined,
   PhoneOutlined,
   GlobalOutlined,
-  CalendarOutlined,
-  FileOutlined
+  CalendarOutlined
 } from '@ant-design/icons';
 import CustomBreadcrumb from '@/components/Breadcrumb';
 import LeadForm from '../../../components/LeadForm';
@@ -158,30 +157,6 @@ const LeadDetailPage = () => {
           </Descriptions.Item>
           <Descriptions.Item label="Additional Notes" span={2}>
             {lead.additionalNotes}
-          </Descriptions.Item>
-        </Descriptions>
-
-        <Divider orientation="left">Documents</Divider>
-        <Descriptions bordered column={1}>
-          <Descriptions.Item label="Passport">
-            <Space>
-              <FileOutlined />
-              {lead.documents.passport}
-            </Space>
-          </Descriptions.Item>
-          <Descriptions.Item label="Resume/CV">
-            <Space>
-              <FileOutlined />
-              {lead.documents.resume}
-            </Space>
-          </Descriptions.Item>
-          <Descriptions.Item label="Other Documents">
-            {lead.documents.otherDocuments.map((doc, index) => (
-              <Space key={index}>
-                <FileOutlined />
-                {doc}
-              </Space>
-            ))}
           </Descriptions.Item>
         </Descriptions>
 
